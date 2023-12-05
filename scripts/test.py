@@ -9,7 +9,7 @@ from collbest.models import EquilateralCollider, MultiSpeed, LowSpeedCollider
 info_list = []
 
 # Name of the run
-run_label = "test"
+run_label = "test_polychord"
 
 # Model settings
 info_list.append(LowSpeedCollider.get_info())
@@ -20,8 +20,8 @@ info_list.append(fnlSNR2fnl.get_info())
 info_list.append(BispectrumLikelihood.get_info())
 
 # Sampler settings
-info_list.append(base_polychord_sampler_info())
-#info_list.append(base_mcmc_sampler_info())
+#info_list.append(base_polychord_sampler_info())
+info_list.append(base_mcmc_sampler_info())
 
 # Output settings
 output_path = "../outputs/" + run_label + "/"

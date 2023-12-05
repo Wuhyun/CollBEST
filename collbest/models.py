@@ -50,7 +50,7 @@ def multi_speed_model(c1, c2, c3=1, shape_name=None):
     # Return a cmbbest.Model instance of MS
     shape_func = multi_speed(c1, c2, c3)
     if shape_name is None:
-        shape_name = f"EC multi-cs {c1:.2f}_{c2:.2f}_{c3:.2f}"
+        shape_name = f"MS {c1:.2f}_{c2:.2f}_{c3:.2f}"
 
     return best.Model("custom", shape_function=shape_func, shape_name=shape_name)
 
@@ -144,7 +144,7 @@ class EquilateralCollider(Theory):
                     },
                     "latex": r"\mu"
                 },
-                "delta": {
+                "delta_EC": {
                     "prior": {
                         "min": 0,
                         "max": np.pi
@@ -186,29 +186,29 @@ class MultiSpeed(Theory):
         info = {}
         info["theory"] = {"collbest.models.MultiSpeed": None}
         info["params"] = {
-                "c_1_EC": {
+                "c_1_MS": {
                     "prior": {
                         "min": 0.001,
                         "max": 1
                     },
                     "latex": r"c_1"
                 },
-                "c_2_EC": {
+                "c_2_MS": {
                     "prior": {
                         "min": 0.001,
                         "max": 1
                     },
                     "latex": r"c_2"
                 },
-                "c_3_EC": {
+                "c_3_MS": {
                     "value": 1,
                     "latex": r"c_3"
                 },
-                "c_1_2_EC": {
-                    "value": "lambda c_1_EC, c_2_EC: c_1_EC/c_2_EC",
-                    "min": 0,
-                    "max": 1  # Enforces c_1 <= c_2
-                }
+#                "c_1_2_MS": {
+#                    "value": "lambda c_1_MS, c_2_MS: c_1_MS/c_2_MS",
+#                    "min": 0,
+#                    "max": 1  # Enforces c_1 <= c_2
+#                }
         }
 
         return info

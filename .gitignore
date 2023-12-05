@@ -1,0 +1,8 @@
+.DS_Store*
+*egg-info*
+outputs*
+build*
+*.sh
+notebooks*
+figures*
+collbest/__pycache__*
