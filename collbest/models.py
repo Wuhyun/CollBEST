@@ -1,6 +1,7 @@
 import itertools
 import numpy as np
 from cobaya.theory import Theory
+from scipy.special import yv, legendre
 import cmbbest as best
 
 # Some constants
@@ -74,6 +75,48 @@ def low_speed_collider_model(alpha, shape_name=None):
     shape_func = low_speed_collider(alpha)
     if shape_name is None:
         shape_name = f"LSC {alpha:.3f}"
+
+    return best.Model("custom", shape_function=shape_func, shape_name=shape_name)
+
+
+# Massive scalar exchange (QSF)
+def massive_scalar_exchange(nu):
+    def shape_function(k1, k2, k3):
+        kappa = k1 * k2 * k3 / ((k1 + k2 + k3) ** 3)
+        sum = BASE_PREFACTOR * 3 * np.sqrt(3 * kappa) * yv(nu, 8 * kappa) / yv(nu, 8 / 27)
+        return sum
+
+    return shape_function
+
+def massive_scalar_exchange_model(nu, shape_name=None):
+    # Return a cmbbest.Model instance of QSF
+    shape_func = massive_scalar_exchange(nu)
+    if shape_name is None:
+        shape_name = f"QSF {nu:.3f}"
+
+    return best.Model("custom", shape_function=shape_func, shape_name=shape_name)
+
+
+# Spinning exchange
+def spinning_exchange(spin):
+    def shape_function(k1, k2, k3):
+        sum = 0
+        kt = k1 + k2 + k3
+        for pk1, pk2, pk3 in itertools.permutations([k1, k2, k3]):
+            arg = (pk1**2 + pk3**2 - pk2**2) / (2 * pk1 * pk3)
+            sum += (legendre(spin)(arg)
+                        * (pk2 / ((pk1*pk3)**(1-spin) * kt**(2*spin+1)))
+                        * ((2*spin-1) * ((pk1+pk3)*kt + 2*spin*pk1*pk3) + kt**2 ))
+        norm = legendre(spin)(0.5) * (4*spin**2 + 10*spin + 3) * 6 / (3 ** (2*spin+1))
+        return BASE_PREFACTOR * sum / norm
+
+    return shape_function
+
+def spinning_exchange_model(spin, shape_name=None):
+    # Return a cmbbest.Model instance of SE
+    shape_func = spinning_exchange(spin)
+    if shape_name is None:
+        shape_name = f"SE {spin:d}"
 
     return best.Model("custom", shape_function=shape_func, shape_name=shape_name)
 
@@ -248,6 +291,47 @@ class LowSpeedCollider(Theory):
                         "max": 1
                     },
                     "latex": r"\alpha"
+                },
+        }
+
+        return info
+
+
+
+class MassiveScalarExchange(Theory):
+
+    def initialize(self):
+        pass
+
+    def initialize_with_provider(self, provider):
+        self.provider = provider
+
+    def get_requirements(self):
+        return ["nu_QSF"]
+    
+    def get_can_provide(self):
+        return ["cmbbest_model"]
+
+    def calculate(self, state, want_derived=True, **params_values_dict):
+        nu = self.provider.get_param("nu_QSF")
+
+        model = low_speed_collider_model(nu)
+        state["cmbbest_model"] = model
+
+    def get_cmbbest_model(self):
+        return self.current_state["cmbbest_model"]
+
+    def get_info():
+        # Get base info for cobaya runs
+        info = {}
+        info["theory"] = {"collbest.models.MassiveScalarExchange": None}
+        info["params"] = {
+                "nu_QSF": {
+                    "prior": {
+                        "min": 0,
+                        "max": 1.5
+                    },
+                    "latex": r"\nu"
                 },
         }
 
